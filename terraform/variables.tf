@@ -20,5 +20,8 @@ variable "environment" {
 }
 
 variable "zone_name" {
-  default = "daws76s.online"
+  default = "daws76s.cfd"
+}
+variable app_version {
+
 }
