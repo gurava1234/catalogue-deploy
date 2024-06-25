@@ -16,6 +16,8 @@ pipeline {
     parameters {
         string(name: 'version', defaultValue: '', description: 'What is the artifact version?')
         string(name: 'environment', defaultValue: '', description: 'What is the environment?')
+        booleanParam(name: 'Destroy', defaultValue: 'false', description: 'What is destroy?')
+        booleanParam(name: 'creat', defaultValue: 'false', description: 'What is creat?')
     }
     // build
     stages {
@@ -31,29 +33,45 @@ pipeline {
             steps {
                 sh """
                    cd terraform
-                   terraform init --backend-config=${params.environment}/backend.tf
-                   -reconfigure
+                   terraform init --backend-config=${params.environment}/backend.tf-reconfigure
                 """
             }
         }
-             stage('plan') {
+         
+           stage('plan') {
             steps {
-                sh """
+                 sh """
                    cd terraform
-                   terraform plan -var-file=${params.environment}/${params.environment}.
-                   tfvars -var="app_version=${params.version}"
-                """
+                   terraform plan -var-file=${params.environment}/${params.environment}.tfvars -var="app_version=${params.version}" -auto-approve
+                  """
             }
         }
 
-            stage('apply') {
-            steps {
-                sh """
+             stage('Apply') {
+               when{
+                expression{
+                    params.create
+                }
+               }
+               steps {
+                 sh """
                    cd terraform
-                   terraform apply -var-file=${params.environment}/${params.environment}.
-                   tfvars -var="app_version=${params.version}"
-                   -auto-approve
-                """
+                   terraform apply -var-file=${params.environment}/${params.environment}.tfvars -var="app_version=${params.version}" -auto-approve
+                  """
+            }
+        }
+
+            stage('Destroy') {
+               when{
+                expression{
+                    params.Destroy
+                }
+               }
+               steps {
+                 sh """
+                   cd terraform
+                   terraform destroy -var-file=${params.environment}/${params.environment}.tfvars -var="app_version=${params.version}" -auto-approve
+                  """
             }
         }
         
